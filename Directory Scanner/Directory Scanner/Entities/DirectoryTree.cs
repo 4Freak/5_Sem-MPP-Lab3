@@ -4,9 +4,11 @@
 	{
 		public TreeNode? Root {get; private set;} = null;
 
-		public DirectoryTree(TreeNode treeNode)
+		public DirectoryTree(TreeNode rootNode)
 		{
-			Root = treeNode;
+			
+			Root = rootNode;
 		}
+
 	}
 }
