@@ -3,11 +3,30 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DirectoryScannerApp"
+        xmlns:local="clr-namespace:DirectoryScannerApp" 
+        xmlns:vievmodel="clr-namespace:DirectoryScannerApp.VievModel" d:DataContext="{d:DesignInstance Type=vievmodel:ViewModel}"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" ResizeMode="NoResize">
     <Grid>
-        <Button x:Name="btnOpenDir" Content="Open Directory" FontSize="14" HorizontalAlignment="Left" Width="100" Height="40" Margin="50, 300, 10, 0"/>
-        <Button x:Name="btnStart" Content="Start" FontSize="14" HorizontalAlignment="Left" Width="100" Height="40" Margin="200, 300, 10, 0"/>
+        <ScrollViewer x:Name="scvTreeViev" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <TreeView ItemsSource="{Binding Tree.Root.InnerNodes}" Width="800" Height="270" >
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Path=InnerNodes}">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Width="20" Height="15" Source="{Binding Path=ImagePath}"/>
+                            <TextBlock Text="{Binding Name}"/>
+                            <TextBlock Text=" ( "/>
+                            <TextBlock Text="{Binding AbsoluteSize}"/>
+                            <TextBlock Text=" bytes, "/>
+                            <TextBlock Text="{Binding RelativeSize, StringFormat=N2}"/>
+                            <TextBlock Text="% )"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </ScrollViewer>
+        <Button x:Name="btnOpenDir" Content="Open Directory" FontSize="14" HorizontalAlignment="Left" Width="100" Height="40" Margin="50, 300, 10, 0" Command="{Binding SetDirectory, Mode=OneWay}"/>
+        <Button x:Name="btnStart" Content="Start" FontSize="14" HorizontalAlignment="Left" Width="100" Height="40" Margin="200, 300, 10, 0" Command="{Binding StartSearch, Mode=OneWay}" />
+        <Button x:Name="btnStop" Content="Stop" FontSize="14" HorizontalAlignment="Left" Width="100" Height="40" Margin="340, 300, 10, 0" Command="{Binding StopSearch, Mode=OneWay}" />
     </Grid>
 </Window>

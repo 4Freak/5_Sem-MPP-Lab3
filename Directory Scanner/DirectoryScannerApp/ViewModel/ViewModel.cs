@@ -1,11 +1,14 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Directory_Scanner.Servants;
 using Directory_Scanner.Entities;
 using Directory_Scanner.Exceptions;
 using Microsoft.Win32;
 using System.Windows;
+using System.Diagnostics;
+using DirectoryScannerApp.Model;
 
 namespace DirectoryScannerApp.VievModel
 {
@@ -30,14 +33,15 @@ namespace DirectoryScannerApp.VievModel
 		{
 			get
 			{
+				Debug.WriteLine("SetDirectory");
 				if (_setDirectory == null)
 				{
 					_setDirectory = new RelayCommand(obj =>
 					{
-						var openFileDialog = new OpenFileDialog();
-						if (openFileDialog.ShowDialog() == true)
+						var folderBrowserDialog = new FolderBrowserDialog();
+						if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
 						{
-							_directoryName = openFileDialog.FileName;		
+							_directoryName = folderBrowserDialog.SelectedPath;		
 						}
 					});
 				}
@@ -55,7 +59,8 @@ namespace DirectoryScannerApp.VievModel
 					_startSearch = new RelayCommand(obj => 
 					{
 						_directoryScanner =  new DirectoryScanner(_directoryName);
-						Tree = _directoryScanner.StartScan(ThreadCount);
+						var res = _directoryScanner.StartScan(_threadCount);
+						Tree = TreeMapper.ToViewTree(res);
 					});
 				}
 				return _startSearch;
@@ -73,7 +78,7 @@ namespace DirectoryScannerApp.VievModel
 					{
 						if (IsScannerWorking)
 						{
-							Tree = _directoryScanner.StopScan();
+							Tree = TreeMapper.ToViewTree(_directoryScanner.StopScan());
 						}
 					});
 				}
@@ -81,7 +86,7 @@ namespace DirectoryScannerApp.VievModel
 			}
 		}
 
-		private int _threadCount= 1;
+		private int _threadCount= 4;
 		public int ThreadCount
 		{
 			get{ return _threadCount;}
@@ -103,8 +108,8 @@ namespace DirectoryScannerApp.VievModel
 			}
 		}
 
-		private DirectoryTree _tree;
-		public DirectoryTree Tree
+		private ModelDirectoryTree _tree;
+		public ModelDirectoryTree Tree
 		{
 			get {return _tree;}
 			private set

@@ -3,16 +3,18 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
+	<UseWindowsForms>true</UseWindowsForms>
+	  <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Model\" />
-  </ItemGroup>
+	<ItemGroup>
+		<Resource Include="Resources/Dir.png" />
+		<Resource Include="Resources/File.png" />
+	</ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
     <ProjectReference Include="..\Directory Scanner\Directory Scanner.csproj" />
-  </ItemGroup>
-
+  </ItemGroup>	
+	
 </Project>
