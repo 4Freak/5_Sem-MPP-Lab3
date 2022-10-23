@@ -1,11 +1,7 @@
 ﻿using Directory_Scanner.Entities;
 using Directory_Scanner.Exceptions;
 using System.Collections.Concurrent;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Directory_Scanner.Servants
 {
@@ -14,7 +10,7 @@ namespace Directory_Scanner.Servants
 		public readonly string DirectoryPath;
 		public int ThreadCount;
 
-		private readonly CancellationTokenSource? _cts;
+		private readonly CancellationTokenSource _cts;
 		private DirectoryScannerThreads _dst;
 
 		private TreeNode _rootNode;
@@ -27,7 +23,6 @@ namespace Directory_Scanner.Servants
 		
 		public DirectoryTree StartScan(int threadCount)
 		{	
-			Debug.WriteLine("StartScan");
 			ThreadCount = threadCount;
 			if (Directory.Exists(DirectoryPath))
 			{
@@ -44,12 +39,17 @@ namespace Directory_Scanner.Servants
 			
 			_dst.StartThreads(_cts.Token);
 			_dst.WaitThreads();
+			_rootNode.CalculateParameters();
 			return new DirectoryTree(_rootNode);	
 		}
 
 		public DirectoryTree StopScan()
 		{
-			_cts.Cancel();
+			if (!_cts.IsCancellationRequested)
+			{
+				_cts.Cancel();
+				_rootNode.CalculateParameters();
+			}
 			return new DirectoryTree(_rootNode);
 		}
 

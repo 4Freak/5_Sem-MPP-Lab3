@@ -9,8 +9,8 @@ namespace Directory_Scanner.Servants
 		private ConcurrentBag<Task> _waitBag;
 		private readonly Semaphore _taskSemaphore;
 
-		public Task? _addNextTask;
-		public Task? _waitNextTask;
+		public Task _addNextTask;
+		public Task _waitNextTask;
 
 		private readonly CancellationToken _token;
 		public DirectoryScannerThreads(int maxThreadCount, CancellationTokenSource cts)
@@ -59,10 +59,8 @@ namespace Directory_Scanner.Servants
 		private void WaitNextTasks()
 		{
 			Task? task;
-			Debug.WriteLine("WaitTask");
 			while (_waitBag.IsEmpty == false  && _token.IsCancellationRequested == false)
 			{
-				Debug.WriteLine("Bag not empty");
 				bool res = _waitBag.TryTake(out task);
 				if (res == true && task != null)
 				{
