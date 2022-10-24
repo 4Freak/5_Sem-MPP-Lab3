@@ -38,7 +38,7 @@ namespace Directory_Scanner.Servants
 			}
 			
 			_dst.StartThreads(_cts.Token);
-			_dst.WaitThreads();
+			_dst.WaitThreads(); // TODO: add custom exception
 			_rootNode.CalculateParameters();
 			return new DirectoryTree(_rootNode);	
 		}
@@ -62,29 +62,36 @@ namespace Directory_Scanner.Servants
 			if (Directory.Exists(dirName))
 			{	
 				// Get files and save it to inner nodes
-				var files = Directory.GetFiles(dirName);	
-				foreach (var file in files)
+				try
 				{
-					var fileInfo = new FileInfo(file);
-					if (fileInfo.LinkTarget == null)
+					var files = Directory.GetFiles(dirName);	
+					foreach (var file in files)
 					{
-						var newNode = new TreeNode(fileInfo.FullName, fileInfo.Name, NodeType.File, fileInfo.Length);
-						treeNode.InnerNodes.Add(newNode);
+						var fileInfo = new FileInfo(file);
+						if (fileInfo.LinkTarget == null)
+						{
+							var newNode = new TreeNode(fileInfo.FullName, fileInfo.Name, NodeType.File, fileInfo.Length);
+							treeNode.InnerNodes.Add(newNode);
+						}
+					}				
+					var directories = Directory.GetDirectories(dirName);
+					foreach(var directory in directories)
+					{
+						var directoryInfo = new DirectoryInfo(directory);
+						if (Directory.Exists(directoryInfo.FullName))
+						{
+							var newNode = new TreeNode(directoryInfo.FullName, directoryInfo.Name, NodeType.Dir);
+							treeNode.InnerNodes.Add(newNode);
+							var newTask = new Task(() => ScanDirectory(newNode, directoryInfo.FullName), _cts.Token); 
+							_dst.AddTask(newTask);						
+						}
 					}
 				}
-				
-				var directories = Directory.GetDirectories(dirName);
-				foreach(var directory in directories)
+				catch(Exception ex)
 				{
-					var directoryInfo = new DirectoryInfo(directory);
-					if (Directory.Exists(directoryInfo.FullName))
-					{
-						var newNode = new TreeNode(directoryInfo.FullName, directoryInfo.Name, NodeType.Dir);
-						treeNode.InnerNodes.Add(newNode);
-						var newTask = new Task(() => ScanDirectory(newNode, directoryInfo.FullName), _cts.Token); 
-						_dst.AddTask(newTask);						
-					}
+					Debug.WriteLine(ex);
 				}
+
 			}
 			else
 			{

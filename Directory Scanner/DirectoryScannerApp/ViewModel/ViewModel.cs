@@ -3,11 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Directory_Scanner.Servants;
-using Directory_Scanner.Entities;
-using Directory_Scanner.Exceptions;
-using Microsoft.Win32;
-using System.Windows;
-using System.Diagnostics;
 using DirectoryScannerApp.Model;
 
 namespace DirectoryScannerApp.VievModel
@@ -24,8 +19,6 @@ namespace DirectoryScannerApp.VievModel
 		}
 
 		private DirectoryScanner _directoryScanner;
-		private string _directoryName;
-
 		public ViewModel() {}
 
 		private RelayCommand _setDirectory;
@@ -33,7 +26,6 @@ namespace DirectoryScannerApp.VievModel
 		{
 			get
 			{
-				Debug.WriteLine("SetDirectory");
 				if (_setDirectory == null)
 				{
 					_setDirectory = new RelayCommand(obj =>
@@ -41,7 +33,7 @@ namespace DirectoryScannerApp.VievModel
 						var folderBrowserDialog = new FolderBrowserDialog();
 						if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
 						{
-							_directoryName = folderBrowserDialog.SelectedPath;		
+							DirectoryName = folderBrowserDialog.SelectedPath;		
 						}
 					});
 				}
@@ -58,9 +50,14 @@ namespace DirectoryScannerApp.VievModel
 				{
 					_startSearch = new RelayCommand(obj => 
 					{
-						_directoryScanner =  new DirectoryScanner(_directoryName);
-						var res = _directoryScanner.StartScan(_threadCount);
-						Tree = TreeMapper.ToViewTree(res);
+						Task.Run(() =>
+						{
+							IsScannerWorking = true;
+							_directoryScanner =  new DirectoryScanner(DirectoryName);
+							var res = _directoryScanner.StartScan(_threadCount); // Todo: add custom exception
+							Tree = TreeMapper.ToViewTree(res);
+							IsScannerWorking = false;
+						});
 					});
 				}
 				return _startSearch;
@@ -79,6 +76,7 @@ namespace DirectoryScannerApp.VievModel
 						if (IsScannerWorking)
 						{
 							Tree = TreeMapper.ToViewTree(_directoryScanner.StopScan());
+							IsScannerWorking = false;
 						}
 					});
 				}
@@ -104,9 +102,21 @@ namespace DirectoryScannerApp.VievModel
 			set 
 			{
 				_isScannerWorking = value;
+				IsScannerNotWorking = !value;
 				OnPropertyChanged("IsScannerWorking");
 			}
 		}
+		
+		public bool IsScannerNotWorking
+		{
+			get {return !_isScannerWorking; }
+			set
+			{
+				_isScannerWorking = !value;
+				OnPropertyChanged("IsScannerNotWorking");
+			}
+		}
+
 
 		private ModelDirectoryTree _tree;
 		public ModelDirectoryTree Tree
@@ -116,6 +126,17 @@ namespace DirectoryScannerApp.VievModel
 			{
 				_tree = value;
 				OnPropertyChanged("Tree");
+			}
+		}
+
+		private string _directoryName = "";
+		public string DirectoryName
+		{
+			get {return _directoryName; }
+			set
+			{
+				_directoryName = value;
+				OnPropertyChanged("DirectoryName");
 			}
 		}
 	}

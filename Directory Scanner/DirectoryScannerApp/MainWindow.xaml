@@ -9,7 +9,7 @@
         Title="MainWindow" Height="450" Width="800" ResizeMode="NoResize">
     <Grid>
         <ScrollViewer x:Name="scvTreeViev" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <TreeView ItemsSource="{Binding Tree.Root.InnerNodes}" Width="800" Height="270" >
+            <TreeView ItemsSource="{Binding Tree.InnerNodes}" Width="800" Height="270" >
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Path=InnerNodes}">
                         <StackPanel Orientation="Horizontal">
@@ -17,7 +17,7 @@
                             <TextBlock Text="{Binding Name}"/>
                             <TextBlock Text=" ( "/>
                             <TextBlock Text="{Binding AbsoluteSize}"/>
-                            <TextBlock Text=" bytes, "/>
+                            <TextBlock Text=" b, "/>
                             <TextBlock Text="{Binding RelativeSize, StringFormat=N2}"/>
                             <TextBlock Text="% )"/>
                         </StackPanel>
@@ -25,8 +25,9 @@
                 </TreeView.ItemTemplate>
             </TreeView>
         </ScrollViewer>
-        <Button x:Name="btnOpenDir" Content="Open Directory" FontSize="14" HorizontalAlignment="Left" Width="100" Height="40" Margin="50, 300, 10, 0" Command="{Binding SetDirectory, Mode=OneWay}"/>
-        <Button x:Name="btnStart" Content="Start" FontSize="14" HorizontalAlignment="Left" Width="100" Height="40" Margin="200, 300, 10, 0" Command="{Binding StartSearch, Mode=OneWay}" />
-        <Button x:Name="btnStop" Content="Stop" FontSize="14" HorizontalAlignment="Left" Width="100" Height="40" Margin="340, 300, 10, 0" Command="{Binding StopSearch, Mode=OneWay}" />
+        <TextBlock Text="{Binding DirectoryName}" Margin="10,10,518,0" Height="39" VerticalAlignment="Top" />
+        <Button x:Name="btnOpenDir" Content="Open Directory" FontSize="14" HorizontalAlignment="Left" Width="100" Height="40" Margin="50, 300, 10, 0" Command="{Binding SetDirectory, Mode=OneWay}" IsEnabled="{Binding IsScannerNotWorking}"/>
+        <Button x:Name="btnStart" Content="Start" FontSize="14" HorizontalAlignment="Left" Width="100" Height="40" Margin="200, 300, 10, 0" Command="{Binding StartSearch, Mode=OneWay}" IsEnabled="{Binding IsScannerNotWorking}"/>
+        <Button x:Name="btnStop" Content="Stop" FontSize="14" HorizontalAlignment="Left" Width="100" Height="40" Margin="340, 300, 10, 0" Command="{Binding StopSearch, Mode=OneWay}" IsEnabled="{Binding IsScannerWorking}"/>
     </Grid>
 </Window>
