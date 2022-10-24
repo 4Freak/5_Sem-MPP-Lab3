@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Directory_Scanner.Servants
 {
@@ -24,16 +25,30 @@ namespace Directory_Scanner.Servants
 		public void StartThreads(CancellationToken _token)
 		{
 			// Start tasks to add and wait another tasks
-			_waitNextTask = new Task( () => WaitNextTasks(), _token);
-			_waitNextTask.Start(); // TODO: Add custom exception
-			_addNextTask = new Task( () => StartNextTask(), _token);
-			_addNextTask.Start();	
+			try
+			{
+				_waitNextTask = new Task( () => WaitNextTasks(), _token);
+				_waitNextTask.Start();
+				_addNextTask = new Task( () => StartNextTask(), _token);
+				_addNextTask.Start();	
+			}
+			catch (Exception e)
+			{
+				throw;
+			}
 		}
 
 		public void WaitThreads()
 		{
-			_waitNextTask?.Wait();
-			_addNextTask?.Wait(); // TODO: Add custo, exception
+			try
+			{
+				_waitNextTask?.Wait();
+				_addNextTask?.Wait();
+			}
+			catch (TaskCanceledException e)
+			{
+				return;
+			}
 		}
 
 		public void AddTask(Task task)
@@ -50,8 +65,15 @@ namespace Directory_Scanner.Servants
 				bool res = _taskQueue.TryDequeue(out task);
 				if (res != false && task != null)
 				{
-					_taskSemaphore.WaitOne();
-					task.Start(); // TODO: Add custom exception
+					try
+					{
+						_taskSemaphore.WaitOne();
+						task.Start();
+					}
+					catch (TaskCanceledException e)
+					{
+						return;
+					}
 				}
 			}
 		}
@@ -64,8 +86,15 @@ namespace Directory_Scanner.Servants
 				bool res = _waitQueue.TryDequeue(out task);
 				if (res == true && task != null)
 				{
-					task.Wait();
-					_taskSemaphore.Release();
+					try
+					{
+						task.Wait();
+						_taskSemaphore.Release();
+					}
+					catch (TaskCanceledException e)
+					{
+						return;
+					}
 				}
 			}
 		}

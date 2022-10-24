@@ -54,7 +54,7 @@ namespace DirectoryScannerApp.VievModel
 						{
 							IsScannerWorking = true;
 							_directoryScanner =  new DirectoryScanner(DirectoryName);
-							var res = _directoryScanner.StartScan(_threadCount); // Todo: add custom exception
+							var res = _directoryScanner.StartScan(_threadCount);
 							Tree = TreeMapper.ToViewTree(res);
 							IsScannerWorking = false;
 						});

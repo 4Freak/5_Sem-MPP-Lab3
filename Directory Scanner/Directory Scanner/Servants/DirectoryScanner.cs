@@ -1,7 +1,7 @@
 ﻿using Directory_Scanner.Entities;
-using Directory_Scanner.Exceptions;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO;
 
 namespace Directory_Scanner.Servants
 {
@@ -34,11 +34,11 @@ namespace Directory_Scanner.Servants
 			}
 			else
 			{
-				throw new ScanDirrectoryException("Directory does not exist");
+				throw new DirectoryNotFoundException("Directory not found");
 			}
 			
 			_dst.StartThreads(_cts.Token);
-			_dst.WaitThreads(); // TODO: add custom exception
+			_dst.WaitThreads();
 			_rootNode.CalculateParameters();
 			return new DirectoryTree(_rootNode);	
 		}
@@ -48,7 +48,15 @@ namespace Directory_Scanner.Servants
 			if (!_cts.IsCancellationRequested)
 			{
 				_cts.Cancel();
-				_rootNode.CalculateParameters();
+				if (_rootNode != null)
+				{
+					_rootNode.CalculateParameters();
+				}
+				else
+				{
+					var fileInfo = new FileInfo(DirectoryPath);
+					_rootNode = _rootNode = new TreeNode(fileInfo.FullName, fileInfo.Name, NodeType.Dir);
+				}
 			}
 			return new DirectoryTree(_rootNode);
 		}
@@ -87,15 +95,15 @@ namespace Directory_Scanner.Servants
 						}
 					}
 				}
-				catch(Exception ex)
+				catch(UnauthorizedAccessException e)
 				{
-					Debug.WriteLine(ex);
+					throw;
 				}
 
 			}
 			else
 			{
-				throw new ScanDirrectoryException("Directory does not exist");
+				throw new DirectoryNotFoundException("Directory not found");
 			}
 			return treeNode;
 		}
