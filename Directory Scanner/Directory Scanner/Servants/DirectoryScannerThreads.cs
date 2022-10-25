@@ -25,30 +25,17 @@ namespace Directory_Scanner.Servants
 		public void StartThreads(CancellationToken _token)
 		{
 			// Start tasks to add and wait another tasks
-			try
-			{
-				_waitNextTask = new Task( () => WaitNextTasks(), _token);
-				_waitNextTask.Start();
-				_addNextTask = new Task( () => StartNextTask(), _token);
-				_addNextTask.Start();	
-			}
-			catch (Exception e)
-			{
-				throw;
-			}
+			_waitNextTask = new Task( () => WaitNextTasks(), _token);
+			_waitNextTask.Start();
+			_addNextTask = new Task( () => StartNextTask(), _token);
+			_addNextTask.Start();	
+
 		}
 
 		public void WaitThreads()
 		{
-			try
-			{
-				_waitNextTask?.Wait();
-				_addNextTask?.Wait();
-			}
-			catch (TaskCanceledException e)
-			{
-				return;
-			}
+			_waitNextTask?.Wait(_token);
+			_addNextTask?.Wait(_token);
 		}
 
 		public void AddTask(Task task)
@@ -70,7 +57,11 @@ namespace Directory_Scanner.Servants
 						_taskSemaphore.WaitOne();
 						task.Start();
 					}
-					catch (TaskCanceledException e)
+					catch (TaskCanceledException)
+					{
+						return;
+					}
+					catch (InvalidOperationException)
 					{
 						return;
 					}
@@ -91,7 +82,7 @@ namespace Directory_Scanner.Servants
 						task.Wait();
 						_taskSemaphore.Release();
 					}
-					catch (TaskCanceledException e)
+					catch (TaskCanceledException)
 					{
 						return;
 					}

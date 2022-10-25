@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Directory_Scanner.Servants
 {
@@ -38,7 +39,7 @@ namespace Directory_Scanner.Servants
 			}
 			
 			_dst.StartThreads(_cts.Token);
-			_dst.WaitThreads();
+			_dst.WaitThreads(); // OperationCanceledException
 			_rootNode.CalculateParameters();
 			return new DirectoryTree(_rootNode);	
 		}
@@ -72,34 +73,30 @@ namespace Directory_Scanner.Servants
 				// Get files and save it to inner nodes
 				try
 				{
-					var files = Directory.GetFiles(dirName);	
-					foreach (var file in files)
+				var files = Directory.GetFiles(dirName);	
+				foreach (var file in files)
+				{
+					var fileInfo = new FileInfo(file);
+					if (fileInfo.LinkTarget == null)
 					{
-						var fileInfo = new FileInfo(file);
-						if (fileInfo.LinkTarget == null)
-						{
-							var newNode = new TreeNode(fileInfo.FullName, fileInfo.Name, NodeType.File, fileInfo.Length);
-							treeNode.InnerNodes.Add(newNode);
-						}
-					}				
-					var directories = Directory.GetDirectories(dirName);
-					foreach(var directory in directories)
+						var newNode = new TreeNode(fileInfo.FullName, fileInfo.Name, NodeType.File, fileInfo.Length);
+						treeNode.InnerNodes.Add(newNode);
+					}
+				}				
+				var directories = Directory.GetDirectories(dirName);
+				foreach(var directory in directories)
+				{
+					var directoryInfo = new DirectoryInfo(directory);
+					if (Directory.Exists(directoryInfo.FullName))
 					{
-						var directoryInfo = new DirectoryInfo(directory);
-						if (Directory.Exists(directoryInfo.FullName))
-						{
-							var newNode = new TreeNode(directoryInfo.FullName, directoryInfo.Name, NodeType.Dir);
-							treeNode.InnerNodes.Add(newNode);
-							var newTask = new Task(() => ScanDirectory(newNode, directoryInfo.FullName), _cts.Token); 
-							_dst.AddTask(newTask);						
-						}
+						var newNode = new TreeNode(directoryInfo.FullName, directoryInfo.Name, NodeType.Dir);
+						treeNode.InnerNodes.Add(newNode);
+						var newTask = new Task(() => ScanDirectory(newNode, directoryInfo.FullName), _cts.Token); 
+						_dst.AddTask(newTask);						
 					}
 				}
-				catch(UnauthorizedAccessException e)
-				{
-					throw;
 				}
-
+				catch(UnauthorizedAccessException){}
 			}
 			else
 			{
