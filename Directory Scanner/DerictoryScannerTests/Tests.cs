@@ -123,13 +123,15 @@ namespace DerictoryScannerTests
 		[Test]
 		public void Cancel()
 		{
-			string dirName = "D:\\";
+			string dirName = "C:\\";
 			var dirScanner = new DirectoryScanner(dirName);
 			try
 			{
 				var scan = new Task(() => dirScanner.StartScan(4));
+				scan.Start();
 				Thread.Sleep(1000);
-				dirScanner.StopScan();
+				var tree = dirScanner.StopScan();
+				Assert.That(tree, Is.Not.Null);
 			}
 			catch (Exception e)
 			{
